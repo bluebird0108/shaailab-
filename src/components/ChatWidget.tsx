@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Terminal, Shield, AlertCircle, RefreshCw } from 'lucide-react';
+import { Send, Sparkles, Terminal, Shield, AlertCircle, RefreshCw, Mic, MicOff } from 'lucide-react';
 import { Message } from '../types';
 
 interface ChatWidgetProps {
@@ -19,6 +19,77 @@ export default function ChatWidget({ apiStatus, checkApiHealth }: ChatWidgetProp
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Speech Recognition States
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [isSupported, setIsSupported] = useState(true);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setIsSupported(false);
+      return;
+    }
+
+    const rec = new SpeechRecognition();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+
+    rec.onstart = () => {
+      setIsListening(true);
+      setSpeechError(null);
+    };
+
+    rec.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setInputValue(transcript);
+    };
+
+    rec.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error === 'not-allowed') {
+        setSpeechError('Microphone access denied. Please check your browser mic permissions.');
+      } else if (event.error === 'no-speech') {
+        setSpeechError('No speech detected. Try speaking closer to the microphone.');
+      } else {
+        setSpeechError(`Voice input error: ${event.error}`);
+      }
+      setIsListening(false);
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = rec;
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (!isSupported) return;
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      setSpeechError(null);
+      try {
+        recognitionRef.current?.start();
+      } catch (err) {
+        console.error('Failed to start recognition:', err);
+        setSpeechError('Could not open audio port. Please check browser settings.');
+      }
+    }
+  };
 
   const quickPrompts = [
     'What can ShahAI do?',
@@ -298,6 +369,44 @@ You can copy this blueprint to start building your microservices!`;
         ))}
       </div>
 
+      {/* Listening Status / Audio feedback */}
+      {isListening && (
+        <div className="flex items-center justify-between gap-3 bg-red-950/20 border-t border-b border-red-500/10 px-6 py-2.5 text-xs text-red-400">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+            <span className="font-semibold tracking-wider uppercase text-[10px]">🎙️ Dictating Live</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-1 bg-red-500 rounded-full animate-bounce [animation-delay:0.1s]" />
+            <div className="h-4 w-1 bg-red-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+            <div className="h-2 w-1 bg-red-500 rounded-full animate-bounce [animation-delay:0.3s]" />
+            <div className="h-5 w-1 bg-red-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+            <div className="h-3 w-1 bg-red-500 rounded-full animate-bounce [animation-delay:0.5s]" />
+          </div>
+          <span className="text-zinc-500 text-[10px] hidden sm:inline">Speak clearly into your microphone</span>
+        </div>
+      )}
+
+      {/* Speech Recognition Error Feedback */}
+      {speechError && (
+        <div className="flex items-center justify-between gap-3 bg-amber-950/20 border-t border-b border-amber-500/15 px-6 py-2.5 text-xs text-amber-400">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+            <span>{speechError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSpeechError(null)}
+            className="text-zinc-500 hover:text-zinc-300 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-zinc-800 bg-zinc-900 cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Input */}
       <form
         onSubmit={(e) => {
@@ -315,10 +424,38 @@ You can copy this blueprint to start building your microservices!`;
           maxLength={1000}
           disabled={isLoading}
         />
+        
+        {/* Microphone Button */}
+        <button
+          type="button"
+          onClick={toggleListening}
+          disabled={isLoading || !isSupported}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all cursor-pointer flex-shrink-0 ${
+            !isSupported
+              ? 'border-zinc-900 bg-zinc-950 text-zinc-700 cursor-not-allowed opacity-40'
+              : isListening
+                ? 'border-red-500/40 bg-red-950/30 text-red-400 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.1)]'
+                : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+          }`}
+          title={
+            !isSupported
+              ? 'Speech Recognition not supported in this browser'
+              : isListening
+                ? 'Stop Voice Recognition'
+                : 'Start Voice Dictation'
+          }
+        >
+          {isListening ? (
+            <MicOff className="h-5 w-5 text-red-500 animate-pulse" />
+          ) : (
+            <Mic className="h-5 w-5" />
+          )}
+        </button>
+
         <button
           type="submit"
           disabled={isLoading || !inputValue.trim()}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 font-bold text-white transition-all disabled:opacity-50 cursor-pointer text-sm"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 font-bold text-white transition-all disabled:opacity-50 cursor-pointer text-sm flex-shrink-0"
         >
           <Send className="h-4.5 w-4.5" />
           <span className="hidden sm:inline">Send</span>
