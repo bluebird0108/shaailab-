@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-cyber-bg: #09090b;
+  --color-cyber-panel: #18181b;
+  --color-cyber-panel-solid: #18181b;
+  --color-cyber-brand: #3b82f6;
+  --color-cyber-brand-hover: #60a5fa;
+  --color-cyber-blue-dark: #1d4ed8;
+  --color-cyber-blue-light: #3b82f6;
+}
+
+@layer utilities {
+  .cyber-grid {
+    background-size: 30px 30px;
+    background-image: 
+      linear-gradient(to right, rgba(63, 63, 70, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(63, 63, 70, 0.05) 1px, transparent 1px);
+  }
+
+  .glow-orb {
+    filter: blur(100px);
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+}
+
+@keyframes grid-scroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 30px 30px;
+  }
+}
+
+/* Custom scrollbar for terminal and chat list */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #09090b;
+  color: #fafafa;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
