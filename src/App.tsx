@@ -4,6 +4,7 @@ import DashboardOverview from './components/DashboardOverview';
 import ChatWidget from './components/ChatWidget';
 import PropertyCalculator from './components/PropertyCalculator';
 import ContactSection from './components/ContactSection';
+import ServicesAndWork from './components/ServicesAndWork';
 import { AlertCircle, Terminal, Sparkles } from 'lucide-react';
 
 export default function App() {
@@ -48,6 +49,8 @@ export default function App() {
         
         {/* Module 1: Dashboard Analytics & Dubai localized widget */}
         <DashboardOverview />
+
+        <ServicesAndWork />
 
         {/* Dynamic Column Split: Chat Assistant & Property yield tools */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">

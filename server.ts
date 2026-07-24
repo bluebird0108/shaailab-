@@ -7,9 +7,28 @@ import { createServer as createViteServer } from "vite";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "127.0.0.1";
 
-app.use(express.json());
+app.disable("x-powered-by");
+app.use(express.json({ limit: "16kb" }));
+
+// Keep public AI usage bounded even if a client retries aggressively.
+const chatRequests = new Map<string, { count: number; resetAt: number }>();
+app.use("/api/assistant/chat", (req, res, next) => {
+  const now = Date.now();
+  const key = req.ip || "unknown";
+  const current = chatRequests.get(key);
+  const bucket = !current || current.resetAt <= now
+    ? { count: 0, resetAt: now + 60_000 }
+    : current;
+  bucket.count += 1;
+  chatRequests.set(key, bucket);
+  res.setHeader("RateLimit-Limit", "10");
+  res.setHeader("RateLimit-Remaining", String(Math.max(0, 10 - bucket.count)));
+  if (bucket.count > 10) return res.status(429).json({ error: "Too many messages. Please wait a minute and try again." });
+  next();
+});
 
 // Lazy-initialized Gemini client helper
 let aiClient: GoogleGenAI | null = null;
@@ -37,11 +56,10 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    vpsLocation: "Dubai, UAE",
+    vpsLocation: "UAE",
     services: {
-      assistant: "active",
-      database: "online",
-      automation: "online",
+      assistant: process.env.GEMINI_API_KEY ? "active" : "fallback",
+      website: "online",
     },
   });
 });
@@ -158,8 +176,8 @@ async function initServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[ShahAI Backend] server running on port ${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`[ShahAI Backend] server running on http://${HOST}:${PORT}`);
   });
 }
 

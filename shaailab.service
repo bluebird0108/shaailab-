@@ -1,0 +1,23 @@
+[Unit]
+Description=Shaai Lab website and AI API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/shaailab
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+EnvironmentFile=-/root/shaailab/.env
+ExecStart=/usr/bin/node /root/shaailab/dist/server.cjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/root/shaailab
+
+[Install]
+WantedBy=multi-user.target

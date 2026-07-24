@@ -9,6 +9,8 @@ interface NavbarProps {
 export default function Navbar({ activeSection, setActiveSection }: NavbarProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
+    { id: 'services', label: 'AI Services' },
+    { id: 'work', label: 'Client Work' },
     { id: 'chat', label: 'AI Assistant' },
     { id: 'calculator', label: 'UAE Property Tool' },
   ];
@@ -27,7 +29,7 @@ export default function Navbar({ activeSection, setActiveSection }: NavbarProps)
         </a>
 
         {/* Desktop Navigation */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex max-w-[68vw] items-center gap-1.5 overflow-x-auto sm:gap-3">
           {navItems.map((item) => (
             <button
               key={item.id}
