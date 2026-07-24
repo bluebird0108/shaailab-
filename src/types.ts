@@ -6,17 +6,6 @@ export interface Message {
   isStreaming?: boolean;
 }
 
-export interface AutomationTask {
-  id: string;
-  name: string;
-  description: string;
-  category: 'sync' | 'utility' | 'notification' | 'api';
-  status: 'idle' | 'running' | 'success' | 'failed';
-  lastRun?: string;
-  frequency: string;
-  logs: string[];
-}
-
 export interface PropertyCalcInput {
   purchasePrice: number;
   expectedRent: number;

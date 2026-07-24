@@ -11,7 +11,6 @@ export default function Navbar({ activeSection, setActiveSection }: NavbarProps)
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'chat', label: 'AI Assistant' },
     { id: 'calculator', label: 'UAE Property Tool' },
-    { id: 'automations', label: 'Automation Lab' },
   ];
 
   return (

@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import DashboardOverview from './components/DashboardOverview';
 import ChatWidget from './components/ChatWidget';
 import PropertyCalculator from './components/PropertyCalculator';
-import AutomationManager from './components/AutomationManager';
 import ContactSection from './components/ContactSection';
 import { AlertCircle, Terminal, Sparkles } from 'lucide-react';
 
@@ -63,10 +62,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Module 2: VPS background processes cron manager */}
-        <AutomationManager />
-
-        {/* Module 3: Communications & direct UAE channels */}
+        {/* Module 2: Communications & direct UAE channels */}
         <ContactSection />
       </main>
 
